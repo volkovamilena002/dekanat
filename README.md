@@ -41,6 +41,9 @@ Playwright прогоняет сценарии в браузере против 
 
 Отчёт с подробностями падений: `npx playwright show-report`.
 
+**Демо-видео:** `npm run video` — после всех автотестов браузер сам проходит сценарий
+[docs/video-script.md](docs/video-script.md) и собирает `video/dekanat-demo.webm` (720p, с субтитрами) и `.srt`.
+
 **Скриншоты для отчёта:** `npm run screenshots` сохраняет экраны с телефона (светлая и тёмная тема)
 и с компьютера в `docs/screenshots/`.
 

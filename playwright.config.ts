@@ -41,8 +41,16 @@ export default defineConfig({
   projects: [
     {
       name: "e2e",
-      testIgnore: /screenshots\.spec\.ts/,
+      testIgnore: /(screenshots|video)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], ...browser },
+    },
+    {
+      // Демо-видео: только после того, как прошли все автотесты
+      name: "video",
+      testMatch: /video\.spec\.ts/,
+      dependencies: ["e2e"],
+      // Русский интерфейс браузера: дата в полях — 16.11.2026, а не 11/16/2026
+      use: { ...devices["Desktop Chrome"], ...browser, launchOptions: { args: ["--lang=ru-RU"] } },
     },
     {
       name: "screenshots",
