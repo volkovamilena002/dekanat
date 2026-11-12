@@ -53,6 +53,10 @@ python -m venv .venv && .venv/Scripts/python -m pip install edge-tts imageio-ffm
 Голос по умолчанию — Дмитрий; женский: `VIDEO_VOICE=ru-RU-SvetlanaNeural npm run video`.
 Озвученные фразы кэшируются в `video/voice/`, повторная сборка их не перезапрашивает.
 
+**PDF-отчёт для жюри:** `npm run report` → `report/dekanat-ai-report.pdf` (идея, работа с ИИ,
+промпты, ошибки ИИ, проверки, безопасность, экраны). После деплоя:
+`REPORT_SITE_URL=https://… npm run report`; автор на обложке — `REPORT_AUTHOR="…"`.
+
 **Скриншоты для отчёта:** `npm run screenshots` сохраняет экраны с телефона (светлая и тёмная тема)
 и с компьютера в `docs/screenshots/`.
 
