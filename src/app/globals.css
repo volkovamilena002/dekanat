@@ -1,0 +1,183 @@
+@import "tailwindcss";
+
+/* ---------- Дизайн-токены ----------
+   Палитра: Porcelain #e8ebed, Carbon #17191d, Ultramarine #244cff.
+   Тема: по умолчанию светлая; выбор пользователя — атрибут data-theme на <html>
+   (из cookie, см. src/lib/theme.ts). Контраст всех пар проверяет e2e/a11y.spec.ts. */
+:root {
+  --bg: #e8ebed; /* Porcelain */
+  --surface: #ffffff;
+  --surface-2: #f2f4f5;
+  --border: #d7dce0;
+  --text: #17191d; /* Carbon */
+  --muted: #596069;
+  --accent: #244cff; /* Ultramarine */
+  --accent-ink: #244cff;
+  --accent-soft: #e6ebff;
+  --accent-text: #ffffff;
+  --ok: #0f7a40;
+  --ok-soft: #e3f6ea;
+  --warn: #a15405;
+  --warn-soft: #fff1dc;
+  --bad: #c02633;
+  --bad-soft: #fde7e9;
+  --info: #1a64c2;
+  --info-soft: #e3effd;
+  --hero-from: #244cff;
+  --hero-to: #0f2399;
+  --shadow: 0 1px 2px rgb(23 25 29 / 0.04), 0 4px 16px rgb(23 25 29 / 0.06);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg: #17191d; /* Carbon */
+  --surface: #1f2228;
+  --surface-2: #272b31;
+  --border: #33373e;
+  --text: #e8ebed; /* Porcelain */
+  --muted: #9aa1ab;
+  --accent: #244cff; /* Ultramarine — заливки */
+  --accent-ink: #7a92ff; /* текст и обводки: #244cff на Carbon даёт контраст 2,98 < 4,5 */
+  --accent-soft: #1b2346;
+  --accent-text: #ffffff;
+  --ok: #4fd18b;
+  --ok-soft: #12291d;
+  --warn: #f3b25a;
+  --warn-soft: #2e2212;
+  --bad: #ff7782;
+  --bad-soft: #321519;
+  --info: #6aaaff;
+  --info-soft: #14233a;
+  --hero-from: #244cff;
+  --hero-to: #0f2399;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+      --bg: #17191d; /* Carbon */
+      --surface: #1f2228;
+      --surface-2: #272b31;
+      --border: #33373e;
+      --text: #e8ebed; /* Porcelain */
+      --muted: #9aa1ab;
+      --accent: #244cff; /* Ultramarine — заливки */
+      --accent-ink: #7a92ff; /* текст и обводки: #244cff на Carbon даёт контраст 2,98 < 4,5 */
+      --accent-soft: #1b2346;
+      --accent-text: #ffffff;
+      --ok: #4fd18b;
+      --ok-soft: #12291d;
+      --warn: #f3b25a;
+      --warn-soft: #2e2212;
+      --bad: #ff7782;
+      --bad-soft: #321519;
+      --info: #6aaaff;
+      --info-soft: #14233a;
+      --hero-from: #244cff;
+      --hero-to: #0f2399;
+      --shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+      color-scheme: dark;
+  }
+}
+
+/* dark: в классах Tailwind учитывает и системную тему, и выбор пользователя */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--border);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--accent-text);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --font-sans: "Onest Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --shadow-card: var(--shadow);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-ink);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-line bg-surface shadow-card;
+  }
+  .btn {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-primary {
+    @apply bg-accent text-on-accent hover:brightness-110;
+  }
+  .btn-secondary {
+    @apply border border-line bg-surface text-ink hover:bg-surface-2;
+  }
+  .btn-ghost {
+    @apply text-muted hover:bg-surface-2 hover:text-ink;
+  }
+  .input {
+    @apply min-h-11 w-full rounded-xl border border-line bg-surface px-3.5 text-base text-ink placeholder:text-muted/70 focus:border-accent-ink focus:outline-none;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-ink;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap;
+  }
+}
+
+/* Скелетоны загрузки */
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--border) 37%, var(--surface-2) 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 12px;
+}
+@keyframes shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+  * { transition: none !important; }
+}
+
+/* Нижняя навигация не перекрывает контент на телефонах с «чёлкой» */
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
+}
