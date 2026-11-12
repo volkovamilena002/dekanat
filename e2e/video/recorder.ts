@@ -3,6 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { BrowserContext, CDPSession, Locator, Page } from "@playwright/test";
+import type { Voice } from "./voice";
 
 /**
  * Запись демо-видео: кадры берём из Chrome (CDP screencast) в 1280×720 и собираем в WebM (VP9)
@@ -56,7 +57,7 @@ export const OVERLAY_SCRIPT = `(() => {
 })();`;
 
 type Frame = { t: number; file: string };
-type Cue = { t: number; text: string };
+type Cue = { t: number; text: string; audio?: string };
 
 export class Recorder {
   private frames: Frame[] = [];
@@ -66,7 +67,10 @@ export class Recorder {
   private tag = "";
   private stoppedAt = 0;
 
-  constructor(private page: Page) {}
+  constructor(
+    private page: Page,
+    private voice: Voice | null = null,
+  ) {}
 
   async start(context: BrowserContext) {
     this.cdp = await context.newCDPSession(this.page);
@@ -95,13 +99,19 @@ export class Recorder {
   }
 
   async caption(text: string) {
-    this.cues.push({ t: Date.now() / 1000, text });
+    this.cues.push({ t: Date.now() / 1000, text, audio: this.voice?.get(text)?.file });
     await this.overlay({ cap: text });
   }
 
   /** Только запись в субтитры .srt (для слайдов, где подпись нарисована на самом слайде) */
   cue(text: string) {
-    this.cues.push({ t: Date.now() / 1000, text });
+    this.cues.push({ t: Date.now() / 1000, text, audio: this.voice?.get(text)?.file });
+  }
+
+  /** Сколько держать фразу: длина озвучки + пауза, без озвучки — время на чтение */
+  durationMs(text: string) {
+    const clip = this.voice?.get(text);
+    return clip ? clip.ms + 450 : Recorder.readMs(text);
   }
 
   /** Убрать подпись, метку и курсор — перед слайдом */
@@ -125,7 +135,7 @@ export class Recorder {
     const started = Date.now();
     await this.caption(text);
     if (action) await action();
-    const left = Recorder.readMs(text) - (Date.now() - started);
+    const left = this.durationMs(text) - (Date.now() - started);
     if (left > 0) await this.page.waitForTimeout(left);
   }
 
@@ -214,7 +224,35 @@ export class Recorder {
     await done;
     fs.writeFileSync(out.replace(/\.\w+$/, ".srt"), this.srt(t0, tEnd));
     fs.rmSync(this.dir, { recursive: true, force: true });
+    if (this.voice && this.cues.some((c) => c.audio)) await this.mux(out, out.replace(/\.\w+$/, ".mp4"), t0);
     return tEnd - t0;
+  }
+
+  /** Видео + озвучка → MP4 (H.264 + AAC): каждая фраза ставится на момент своего субтитра */
+  private async mux(video: string, out: string, t0: number) {
+    const clips = this.cues.filter((c) => c.audio);
+    const inputs = clips.flatMap((c) => ["-i", c.audio!]);
+    const delays = clips.map((c, k) => {
+      const ms = Math.max(0, Math.round((c.t - t0) * 1000));
+      return `[${k + 1}:a]adelay=delays=${ms}:all=1[a${k}]`;
+    });
+    const mix = `${clips.map((_, k) => `[a${k}]`).join("")}amix=inputs=${clips.length}:normalize=0:dropout_transition=0,loudnorm=I=-16:TP=-1.5:LRA=11,apad[aout]`;
+    const proc = spawn(
+      this.voice!.ffmpeg,
+      [
+        "-y", "-loglevel", "error", "-i", video, ...inputs,
+        "-filter_complex", [...delays, mix].join(";"),
+        "-map", "0:v", "-map", "[aout]",
+        "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
+        "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "-shortest",
+        out,
+      ],
+      { stdio: ["ignore", "inherit", "inherit"] },
+    );
+    await new Promise<void>((resolve, reject) => {
+      proc.on("exit", (code) => (code === 0 ? resolve() : reject(new Error(`ffmpeg (звук) завершился с кодом ${code}`))));
+      proc.on("error", reject);
+    });
   }
 
   private srt(t0: number, tEnd: number) {

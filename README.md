@@ -42,7 +42,16 @@ Playwright прогоняет сценарии в браузере против 
 Отчёт с подробностями падений: `npx playwright show-report`.
 
 **Демо-видео:** `npm run video` — после всех автотестов браузер сам проходит сценарий
-[docs/video-script.md](docs/video-script.md) и собирает `video/dekanat-demo.webm` (720p, с субтитрами) и `.srt`.
+[docs/video-script.md](docs/video-script.md) и собирает `video/dekanat-demo.mp4` (720p, с озвучкой
+и субтитрами), `.webm` без звука и `.srt`. Озвучка — нейроголос Microsoft через edge-tts; один раз
+подготовьте окружение Python (иначе видео соберётся без звука):
+
+```bash
+python -m venv .venv && .venv/Scripts/python -m pip install edge-tts imageio-ffmpeg
+```
+
+Голос по умолчанию — Дмитрий; женский: `VIDEO_VOICE=ru-RU-SvetlanaNeural npm run video`.
+Озвученные фразы кэшируются в `video/voice/`, повторная сборка их не перезапрашивает.
 
 **Скриншоты для отчёта:** `npm run screenshots` сохраняет экраны с телефона (светлая и тёмная тема)
 и с компьютера в `docs/screenshots/`.

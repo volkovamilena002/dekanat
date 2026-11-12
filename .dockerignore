@@ -10,3 +10,5 @@ e2e
 test-results
 playwright-report
 docs/screenshots
+.venv
+video
