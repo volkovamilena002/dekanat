@@ -13,6 +13,9 @@ import type { Voice } from "./voice";
 
 export const FPS = 25;
 
+/** Вшитые субтитры: VIDEO_SUBTITLES=1. Файл .srt пишется всегда. */
+export const SUBTITLES = process.env.VIDEO_SUBTITLES === "1";
+
 /** Слой поверх страницы: субтитры, метка сцены, курсор, «круги» от кликов */
 export const OVERLAY_SCRIPT = `(() => {
   const KEY = "rec-state";
@@ -70,6 +73,7 @@ export class Recorder {
   constructor(
     private page: Page,
     private voice: Voice | null = null,
+    private showCaptions = true,
   ) {}
 
   async start(context: BrowserContext) {
@@ -100,7 +104,7 @@ export class Recorder {
 
   async caption(text: string) {
     this.cues.push({ t: Date.now() / 1000, text, audio: this.voice?.get(text)?.file });
-    await this.overlay({ cap: text });
+    if (this.showCaptions) await this.overlay({ cap: text });
   }
 
   /** Только запись в субтитры .srt (для слайдов, где подпись нарисована на самом слайде) */

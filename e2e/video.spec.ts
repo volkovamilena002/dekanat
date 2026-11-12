@@ -3,13 +3,14 @@ import path from "node:path";
 import { expect, test } from "@playwright/test";
 import { ensureEnv, localUrl } from "../scripts/local-pg";
 import { addDays, nextMonday } from "./helpers";
-import { OVERLAY_SCRIPT, Recorder } from "./video/recorder";
+import { OVERLAY_SCRIPT, Recorder, SUBTITLES } from "./video/recorder";
 import { Voice } from "./video/voice";
 import { bugsSlide, bulletsSlide, finalSlide, phonesSlide, terminalSlide, titleSlide } from "./video/slides";
 
 /**
  * Демо-видео для жюри (до 5 минут, 720p): `npm run video` → video/dekanat-demo.mp4 (с озвучкой),
  * .webm (без звука) и .srt. Озвучка — нейроголос edge-tts, если установлен .venv (см. README).
+ * Субтитры в кадр не вшиваются (только файл .srt); вшить: VIDEO_SUBTITLES=1.
  * Сценарий — docs/video-script.md. Запускается только после того, как прошли все автотесты
  * (dependencies в playwright.config.ts), поэтому «N passed» на слайде — правда.
  * Ссылку на сайт для финального слайда можно задать: VIDEO_SITE_URL=https://… npm run video
@@ -103,7 +104,10 @@ test("демо-видео", async ({ browser, baseURL }) => {
   const testText = `${testsWord(titles.length)} сценарии, безопасность и вёрстку — так коду, который написал ИИ, можно доверять.`;
   const voice = Voice.create();
   voice?.prepare([...Object.values(N), testText]);
-  const rec = new Recorder(page, voice);
+  // Без озвучки субтитры нужны обязательно — иначе текст никак не передать
+  const subtitles = SUBTITLES || !voice;
+  const rec = new Recorder(page, voice, subtitles);
+  const onSlide = (text: string) => (subtitles ? text : "");
   const slide = async (html: string, ms: number, cue?: string) => {
     await rec.hide();
     await page.setContent(html, { waitUntil: "load" });
@@ -305,7 +309,7 @@ test("демо-видео", async ({ browser, baseURL }) => {
         { file: path.join(SCREENS, "m05-electives.png"), label: "Элективы" },
         { file: path.join(SCREENS, "m20-today-dark.png"), label: "Тёмная тема" },
       ],
-      N.phones,
+      onSlide(N.phones),
     ),
     rec.durationMs(N.phones) + 800,
     N.phones,
@@ -320,10 +324,10 @@ test("демо-видео", async ({ browser, baseURL }) => {
       [
         "Весь код написал ИИ-агент <b>Claude Code</b>; задачи и решения — за автором проекта",
         "Инструкция для агента — <b>CLAUDE.md</b>: стек, правила безопасности, требования ТЗ",
-        "7 этапов, каждый в журнале <b>docs/ai-log.md</b>: промпты, решения и ошибки ИИ",
+        "Работа шла этапами, каждый — в журнале <b>docs/ai-log.md</b>: промпты, решения и ошибки ИИ",
         "ИИ проверял себя сам: автотесты, скриншоты, проверка доступности",
       ],
-      aiText,
+      onSlide(aiText),
     ),
     rec.durationMs(aiText) + 1500,
     aiText,
@@ -337,13 +341,13 @@ test("демо-видео", async ({ browser, baseURL }) => {
         ["Страница входа на экране 360 px была шире экрана", "Автотест вёрстки", "Исправлена сетка и карточки"],
         ["Слабый контраст цветов в светлой теме (3,9 вместо 4,5)", "Проверка WCAG (axe)", "Цвета подобраны расчётом"],
       ],
-      bugText,
+      onSlide(bugText),
     ),
     rec.durationMs(bugText) + 4500,
     bugText,
   );
   await slide(
-    terminalSlide("npm run test:e2e", titles, `${titles.length} passed`, testText),
+    terminalSlide("npm run test:e2e", titles, `${titles.length} passed`, onSlide(testText)),
     rec.durationMs(testText) + 1500,
     testText,
   );

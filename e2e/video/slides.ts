@@ -34,6 +34,9 @@ h2{font-size:44px;line-height:1.1;font-weight:800;letter-spacing:-.01em}
 .cap{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);width:max-content;max-width:1000px;padding:12px 22px;border-radius:14px;background:rgba(23,25,29,.9);color:#fff;font-size:21px;font-weight:500;line-height:1.38;text-align:center}
 `;
 
+/** Подпись на слайде — только если включены вшитые субтитры (пустая строка — без подписи) */
+const cap = (text: string) => (text ? `<div class="cap">${text}</div>` : "");
+
 export function slideHtml(body: string, theme: "blue" | "dark" | "light" = "dark") {
   return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><style>${BASE}</style></head><body class="${theme}">${body}</body></html>`;
 }
@@ -64,7 +67,7 @@ export function phonesSlide(images: { file: string; label: string }[], caption: 
   return slideHtml(
     `<div class="wrap" style="padding:36px 60px;align-items:center">
        <div style="display:flex;gap:44px;justify-content:center">${imgs}</div>
-     </div><div class="cap">${caption}</div>`,
+     </div>${cap(caption)}`,
     "light",
   );
 }
@@ -81,7 +84,7 @@ export function bulletsSlide(kicker: string, title: string, items: string[], cap
     `<div class="wrap" style="padding-top:56px;gap:30px">
        <div><p class="kicker" style="color:#7a92ff">${kicker}</p><h2 style="margin-top:10px">${title}</h2></div>
        <ul style="list-style:none;padding:0;display:grid;gap:20px;max-width:1060px">${li}</ul>
-     </div><div class="cap">${caption}</div>`,
+     </div>${cap(caption)}`,
     "dark",
   );
 }
@@ -101,7 +104,7 @@ export function bugsSlide(rows: [string, string, string][], caption: string) {
        <div><p class="kicker" style="color:#7a92ff">Масштаб ИИ</p><h2 style="margin-top:10px">Ошибки ИИ ловили проверками, а не глазами</h2></div>
        <div style="display:grid;grid-template-columns:1.25fr .8fr 1.1fr;gap:18px;padding:0 20px;font-size:14px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#9aa1ab"><span>Что пошло не так</span><span>Чем поймали</span><span>Как исправлено</span></div>
        <div style="display:grid;gap:12px">${tr}</div>
-     </div><div class="cap">${caption}</div>`,
+     </div>${cap(caption)}`,
     "dark",
   );
 }
@@ -113,7 +116,7 @@ export function terminalSlide(command: string, lines: string[], summary: string,
     .map((l, k) => `<div class="fade" style="animation-delay:${0.6 + k * step}s;animation-duration:.15s"><span style="color:#4fd18b">✓</span> ${l}</div>`)
     .join("");
   return slideHtml(
-    `<div class="wrap" style="padding:44px 80px 120px;gap:18px">
+    `<div class="wrap" style="padding:44px 80px ${caption ? 120 : 56}px;gap:18px">
        <div><p class="kicker" style="color:#7a92ff">Качество</p><h2 style="margin-top:8px">Автотесты одной командой</h2></div>
        <div style="flex:1;min-height:0;border-radius:16px;background:#0e0f12;border:1px solid #33373e;overflow:hidden;display:flex;flex-direction:column">
          <div style="display:flex;gap:8px;padding:12px 16px;border-bottom:1px solid #26292f"><i style="width:12px;height:12px;border-radius:50%;background:#ff5f57"></i><i style="width:12px;height:12px;border-radius:50%;background:#febc2e"></i><i style="width:12px;height:12px;border-radius:50%;background:#28c840"></i></div>
@@ -122,7 +125,7 @@ export function terminalSlide(command: string, lines: string[], summary: string,
            <div class="fade" style="animation-delay:${0.8 + lines.length * step}s;margin-top:8px;color:#4fd18b;font-weight:700">${summary}</div>
          </div>
        </div>
-     </div><div class="cap">${caption}</div>`,
+     </div>${cap(caption)}`,
     "dark",
   );
 }
