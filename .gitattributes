@@ -1,0 +1,3 @@
+# Единые концы строк (LF) на Windows и на сервере
+* text=auto eol=lf
+*.png binary
