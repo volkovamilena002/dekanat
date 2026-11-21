@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { login, type Account } from "./helpers";
+import { login, nextMonday, type Account } from "./helpers";
 
 /**
  * Доступность по WCAG 2.1 AA (контраст, подписи полей, имена кнопок, структура) —
@@ -47,7 +47,8 @@ for (const scheme of ["light", "dark"] as const) {
           await page.goto("/staff");
           await page.getByRole("link", { name: /Справка/ }).first().click();
           problems.push(...(await audit(page, "/staff/requests/[id]")));
-          await page.goto("/staff/schedule");
+          // Сегодня может быть выходной без пар — берём понедельник следующей недели
+          await page.goto(`/staff/schedule?date=${nextMonday()}`);
           await page.getByRole("link", { name: "Изменить" }).first().click();
           problems.push(...(await audit(page, "/staff/schedule/[id]")));
         }
